@@ -1,0 +1,280 @@
+/* universal selectors */
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#calculationFieldBottom {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+body {
+  background-color: #111;
+  overflow: hidden;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+button {
+  border: none;
+  color: white;
+  background-color: transparent;
+}
+
+::selection {
+  background-color: #4C4A48;
+}
+
+/* calculator wrapper and it's parts used for resizing */
+#calculatorWrapper {
+  position: absolute;
+  padding: 15px;
+}
+
+.topBottom {
+  width: 100%;
+  height: 15px;
+  position: absolute;
+}
+.topBottom:hover {
+  cursor: ns-resize;
+}
+
+#top {
+  top: 0;
+  left: 0;
+}
+
+#bottom {
+  bottom: 0;
+  left: 0;
+}
+
+.leftRight {
+  width: 15px;
+  height: 100%;
+  position: absolute;
+}
+.leftRight:hover {
+  cursor: ew-resize;
+}
+
+#left {
+  top: 0;
+  left: 0;
+}
+
+#right {
+  top: 0;
+  right: 0;
+}
+
+.corner {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+}
+
+#topLeft {
+  top: 0;
+  left: 0;
+}
+
+#topRight {
+  top: 0;
+  right: 0;
+}
+
+#bottomRight {
+  bottom: 0;
+  right: 0;
+}
+
+#bottomLeft {
+  bottom: 0;
+  left: 0;
+}
+
+#topLeft:hover, #bottomRight:hover {
+  cursor: nw-resize;
+}
+
+#topRight:hover, #bottomLeft:hover {
+  cursor: ne-resize;
+}
+
+/* calculator itself */
+#calculator {
+  position: relative;
+  min-width: 320px;
+  min-height: 500px;
+  width: 560px;
+  height: 500px;
+  background-color: #1F1F1F;
+  color: white;
+  outline: 1px solid #444;
+}
+
+/* very top of calculator containing app name and window buttons */
+#calcHeaderWrapper {
+  display: flex;
+  justify-content: space-between;
+  height: 30px;
+  box-sizing: border-box;
+}
+#calcHeaderWrapper:hover {
+  cursor: grab;
+}
+#calcHeaderWrapper h1 {
+  font-size: 0.75rem;
+  font-weight: normal;
+  padding: 5px 0 0 10px;
+}
+#calcHeaderWrapper button {
+  position: relative;
+  width: 45px;
+  height: 100%;
+  line-height: 0;
+}
+#calcHeaderWrapper button span {
+  position: absolute;
+}
+#calcHeaderWrapper button:hover {
+  background-color: #353535;
+}
+#calcHeaderWrapper button:last-child:hover {
+  background-color: #E81123;
+}
+#calcHeaderWrapper div {
+  display: flex;
+}
+
+#minimize {
+  font-size: 2.5rem;
+}
+#minimize span {
+  top: 10px;
+  left: 14px;
+}
+
+#full {
+  font-size: 1.5rem;
+}
+#full span {
+  top: 11px;
+  left: 15px;
+}
+
+#close {
+  font-size: 1rem;
+}
+#close span {
+  top: 15px;
+  left: 16px;
+}
+
+/* menu, current mode, leave on top and history */
+#underHeader {
+  padding: 0 1px;
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+}
+#underHeader div {
+  display: flex;
+}
+#underHeader h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  padding: 5px 10px 0;
+}
+#underHeader button {
+  font-size: 1.3rem;
+  width: 40px;
+}
+#underHeader button:hover {
+  background-color: #4A4A4A;
+  outline: 1px solid #666;
+}
+
+#menu:hover {
+  background-color: #333;
+  outline: none;
+}
+
+/* field for current calculations */
+#calculationWrapper {
+  height: 90px;
+  text-align: right;
+  padding: 0 10px;
+}
+
+#calculationFieldTop {
+  height: 30px;
+  padding-top: 3px;
+  box-sizing: border-box;
+  color: #7C7C7C;
+}
+
+#calculationFieldBottom {
+  height: 60px;
+  font-size: 2.8rem;
+  font-weight: 500;
+  box-sizing: border-box;
+  line-height: 100%;
+}
+
+/* buttons for memory management */
+#memoryButtonsWrapper {
+  display: flex;
+  padding: 5px;
+  height: 40px;
+  box-sizing: border-box;
+}
+#memoryButtonsWrapper button {
+  flex-basis: 100%;
+  padding: 5px 0;
+}
+#memoryButtonsWrapper button:not(#memoryButtonsWrapper button:last-of-type) {
+  margin-right: 5px;
+}
+#memoryButtonsWrapper button:hover {
+  background-color: #4A4A4A;
+  outline: 1px solid #666;
+}
+
+/* main buttons */
+#mainButtonsWrapper {
+  padding: 0 5px 5px;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  grid-gap: 3px;
+  height: 300px;
+  box-sizing: border-box;
+}
+#mainButtonsWrapper button {
+  background-color: #121212;
+}
+#mainButtonsWrapper button:hover {
+  background-color: #4A4A4A;
+  outline: 1px solid #666;
+}
+#mainButtonsWrapper .black {
+  background-color: #060606;
+}
+#mainButtonsWrapper #equals {
+  background-color: #31302F;
+}
+#mainButtonsWrapper #equals:hover {
+  background-color: #474543;
+}
+
+/*# sourceMappingURL=main.css.map */
