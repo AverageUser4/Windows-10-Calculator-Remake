@@ -262,6 +262,8 @@ button {
 }
 #mainButtonsWrapper button {
   background-color: #121212;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 #mainButtonsWrapper button:hover {
   background-color: #4A4A4A;
@@ -275,6 +277,9 @@ button {
 }
 #mainButtonsWrapper #equals:hover {
   background-color: #474543;
+}
+#mainButtonsWrapper .active {
+  background-color: #6D6D6D !important;
 }
 
 /*# sourceMappingURL=main.css.map */

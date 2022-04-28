@@ -191,8 +191,12 @@ $resize-width: 15px;
   box-sizing: border-box;
   button {
     background-color: #121212;
+    font-size: 1.1rem;
+    font-weight: 500;
     &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
   }
   .black { background-color: #060606; }
   #equals { background-color: #31302F; &:hover { background-color: #474543; } }
+  .active { background-color: #6D6D6D !important; }
 }
+
