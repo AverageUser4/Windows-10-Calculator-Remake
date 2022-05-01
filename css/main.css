@@ -8,6 +8,9 @@
   -ms-user-select: none;
   user-select: none;
 }
+*:focus-visible {
+  outline: none;
+}
 
 #calculationFieldBottom {
   -webkit-user-select: text;
@@ -120,7 +123,17 @@ button {
   height: 500px;
   background-color: #1F1F1F;
   color: white;
-  outline: 1px solid #444;
+  outline: 1px solid #333;
+}
+
+.activeCalculator {
+  outline-color: #444 !important;
+}
+.activeCalculator #calcHeaderWrapper {
+  color: white;
+}
+.activeCalculator #calcHeaderWrapper button {
+  color: white;
 }
 
 /* very top of calculator containing app name and window buttons */
@@ -129,6 +142,7 @@ button {
   justify-content: space-between;
   height: 30px;
   box-sizing: border-box;
+  color: #666;
 }
 #calcHeaderWrapper:hover {
   cursor: grab;
@@ -143,6 +157,7 @@ button {
   width: 45px;
   height: 100%;
   line-height: 0;
+  color: #666;
 }
 #calcHeaderWrapper button span {
   position: absolute;
@@ -222,6 +237,7 @@ button {
   padding-top: 3px;
   box-sizing: border-box;
   color: #7C7C7C;
+  font-size: 0.8rem;
 }
 
 #calculationFieldBottom {
@@ -249,6 +265,9 @@ button {
 #memoryButtonsWrapper button:hover {
   background-color: #4A4A4A;
   outline: 1px solid #666;
+}
+#memoryButtonsWrapper .active {
+  background-color: #6D6D6D !important;
 }
 
 /* main buttons */

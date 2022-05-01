@@ -2,6 +2,12 @@
 
 // used globally
 const html = document.getRootNode();
+
+const memory_buttons_wrapper = document.getElementById('memoryButtonsWrapper');
+const memory_buttons_children = [];
+for(x of memory_buttons_wrapper.children)
+  memory_buttons_children.push(x);
+
 const main_buttons_wrapper = document.getElementById('mainButtonsWrapper');
 const main_buttons_children = [];
 for(x of main_buttons_wrapper.children)
@@ -35,6 +41,11 @@ const res_pos = {
 for(let x in res_pos)
   res_pos[x].addEventListener('mousedown', resizeMouseDown);
 
+// change calculator's style when it's active
+window.addEventListener('mousedown', calcRemoveActive);
+calculator.addEventListener('mousedown', calcAddActive);
+wrapper.addEventListener('mousedown', calcAddActive);
+
 // inserting input with keyboard
 window.addEventListener('keypress', keyboardPress);
 window.addEventListener('keydown', keyboardDown);
@@ -43,12 +54,14 @@ const field_bottom = document.getElementById('calculationFieldBottom');
 
 // animation for mouse click
 let currently_active;
-for(x of main_buttons_children)
+for(x of memory_buttons_children) {
   x.addEventListener('mousedown', buttonMouseDown);
-
-// calculation logic
-let current_operator;
-let a, b, c;
+  x.tabIndex = '-1';
+}
+for(x of main_buttons_children) {
+  x.addEventListener('mousedown', buttonMouseDown);
+  x.tabIndex = '-1';
+}
 
 
 /* grabbing and moving around the calculator */
@@ -144,64 +157,214 @@ function resizeMouseUp() {
   left_extended = false;
 }
 
-
-/* inserting input with keyboard */
-function adjustFontSize(len) {
-  if(len <= 13)
-    field_bottom.style.fontSize = '2.8rem';
-  else
-    field_bottom.style.fontSize = '1.6rem';
+/* change calculator's style when it's active */
+function calcAddActive(event) {
+  calculator.classList.add('activeCalculator');
+  event.stopPropagation();
 }
 
+function calcRemoveActive() {
+  calculator.classList.remove('activeCalculator');
+}
+
+
+/* inserting input with keyboard */
+// calculation logic
+let current_operator;
+
+/*
+- set when defining operator
+- used in doMaths and percentCalc
+*/
+let calcA;
+
+/*
+- set in doMaths, specialCalc or percentCalc
+- used in doMaths
+*/
+let calcB;
+
+/* 
+- set after choosing operator
+- used only to clear 0 when inserting input
+*/
+let waiting_for_b = false;
+
+/*
+- set in specialCalc, percentCalc and doMaths
+- used to keep b always the same when performing the same operation multiple times inside doMaths
+and percentCalc
+*/
+let dont_change_b = false;
+
+/*
+- set after doMaths
+- used to clear entire input when inserting input or using CE button
+- also used to make % not do anything
+- and to make =/- clear top
+*/
+let first_calc_done = false;
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 function changeNumField(numVal, isNum, add) {
-  // while sending length to adjustFontSize, we assume the length will be changed by 1
-  // but it can get changed by 2 if we add / remove space, pobably not very important
+  if(first_calc_done)
+    clearInput(true);
+  else if(waiting_for_b) {
+    clearInput(false);
+    waiting_for_b = false;
+  }
+
+  if(field_bottom.innerHTML.length >= 19 && add)
+    return;
 
   // checks if we're adding or removing input
   if(add) {
-    adjustFontSize(field_bottom.innerHTML.length + 1);
     if(field_bottom.innerHTML === '0' && isNum)
     field_bottom.innerHTML = '';
-
+    
     if(isNum)
-      field_bottom.innerHTML += (numVal);
+    field_bottom.innerHTML += (numVal);
     else
-      field_bottom.innerHTML += ',';
+    field_bottom.innerHTML += ',';
   }
   else {
     field_bottom.innerHTML = field_bottom.innerHTML.slice(0, -1).trim();
-    adjustFontSize(field_bottom.innerHTML.length);
     if(field_bottom.innerHTML === '')
-      field_bottom.innerHTML = '0';
+    field_bottom.innerHTML = '0';
+  }
+  adjustFontSize(field_bottom.innerHTML.length);
+}
+
+function changeSign() {
+  if(first_calc_done) {
+    let buf = parseBottom();
+    clearInput(true);
+    field_bottom.innerHTML = buf;
+  }
+    
+  field_bottom.innerHTML = parseBottom() * -1;
+  field_bottom.innerHTML = field_bottom.innerHTML.replace('.', ',');
+  adjustFontSize(field_bottom.innerHTML.length);
+}
+
+function percentCalc() {
+  if(typeof current_operator === 'undefined'
+  || first_calc_done)return;
+
+  if(!dont_change_b) {
+    calcB = calcA * (parseBottom() / 100);
+    dont_change_b = true;
+  }
+  doMaths();
+}
+
+function specialCalc(whichCalc) {
+  let bottom_val = parseBottom();
+
+  if(typeof current_operator === 'undefined') {
+    switch(whichCalc) {
+      case 'onexth':
+        field_top.innerHTML = `1/(${bottom_val}) =`
+        field_bottom.innerHTML = 1 / bottom_val;
+        break;
+      case 'square':
+        field_top.innerHTML = `sqr(${bottom_val}) =`
+        field_bottom.innerHTML = Math.pow(bottom_val, 2);
+        break;
+      case 'sqrt':
+        field_top.innerHTML = `√(${bottom_val}) =`
+        field_bottom.innerHTML = Math.sqrt(bottom_val);
+        break;
+    }
+    adjustFontSize(field_bottom.innerHTML.length);
+  }
+  else {
+    switch(whichCalc) {
+      case 'onexth':
+        calcB = 1 / bottom_val;
+        break;
+      case 'square':
+        calcB = Math.pow(bottom_val, 2);
+        break;
+      case 'sqrt':
+        calcB = Math.sqrt(bottom_val);
+        break;
+    }
+    dont_change_b = true;
+    doMaths();
+  }
+}
+
+//on + - / *
+function defineOperator(cur_ope) {
+  current_operator = cur_ope;
+  field_top.innerHTML = field_bottom.innerHTML + ` ${current_operator}`;
+  calcA = parseBottom();
+  waiting_for_b = true;
+  first_calc_done = false;
+  dont_change_b = false;
+}
+
+//on = or enter, when we are ready to perform calculation
+function doMaths() {
+  if(typeof current_operator === 'undefined')
+    return;
+    
+  let calcC;
+
+  if(!dont_change_b)
+    calcB = parseBottom();
+
+  switch(current_operator) {
+    case '+': calcC = calcA + calcB; break;
+    case '-': calcC = calcA - calcB; break;
+    case '*': calcC = calcA * calcB; break;
+    case '/': calcC = calcA / calcB; break;
   }
 
-  // makes number split every 3 digits
-  if(field_bottom.innerHTML.length > 3
-  && field_bottom.innerHTML.indexOf(',') === -1)
-   {
-    let spaceless_copy = '';
-    for(let i = 0; i < field_bottom.innerHTML.length; i++) {
-      if(field_bottom.innerHTML.charAt(i) !== ' ')
-        spaceless_copy += field_bottom.innerHTML.charAt(i);
-    }
+  if(calcB < 0)
+    field_top.innerHTML = `${calcA} ${current_operator} (${calcB}) =`;
+  else
+    field_top.innerHTML = `${calcA} ${current_operator} ${calcB} =`;
 
-    let len = spaceless_copy.length;
-    let modulo = len % 3;
-    let insert_new_space = modulo ? -2 : -1;
-    let buf_str = '';
+  field_bottom.innerHTML = String(calcC).replace('.', ',');
 
-    for(let i = 0; i < len; i++) {
-      if(insert_new_space != -2)
-        insert_new_space++;
+  adjustFontSize(field_bottom.innerHTML.length);
 
-      if(i === modulo && i > 0 || insert_new_space === 3) {
-        buf_str += ' ';
-        insert_new_space = 0;
-      }
-      buf_str += spaceless_copy.charAt(i);
-    }
-    field_bottom.innerHTML = buf_str;
-  }
+  calcA = calcC;
+  dont_change_b = true;
+  first_calc_done = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+ 
+function parseBottom() {
+  return parseFloat(field_bottom.innerHTML.replace(/ /g, '').replace(',', '.'));
 }
 
 function keyLogic(element, clickInput) {
@@ -215,9 +378,10 @@ function keyLogic(element, clickInput) {
   if(!isNaN(Number(element.innerHTML))) { isNum = true; insert = true; }
   else if((element.id === 'comma') && field_bottom.innerHTML.indexOf(',') === -1)
     insert = true;   
-  if(insert && field_bottom.innerHTML.length <= 22)
+  if(insert) {
     changeNumField(element.innerHTML, isNum, true);
-  if(insert)return;
+    return;
+  }
   if(element.id === 'backspace' && field_bottom.innerHTML !== '0')
     changeNumField(element.innerHTML, false, false);
 
@@ -229,40 +393,19 @@ function keyLogic(element, clickInput) {
     case 'divide': defineOperator('/'); break;
     case 'equals': doMaths(); break;
 
-    case 'clearLast': clearInput(false); break;
+    case 'clearLast': clearInput(first_calc_done ? true : false); break;
     case 'clearAll': clearInput(true); break;
+
+    case 'plusMinus': changeSign(); break;
+
+    case 'percent': percentCalc(); break;
+
+    case 'oneDivByX': specialCalc('onexth'); break;
+    case 'xSquare': specialCalc('square'); break;
+    case 'squareRoot': specialCalc('sqrt'); break;
   }
 }
 
-function clearInput(clear_all) {
-  if(clear_all)
-    field_top.innerHTML = '';
-  field_bottom.innerHTML = '0';
-  adjustFontSize(0);
-}
-
-function defineOperator(cur_ope) {
-  current_operator = cur_ope;
-  field_top.innerHTML = field_bottom.innerHTML + ` ${current_operator}`;
-}
-
-function doMaths() {
-  if(typeof current_operator === 'undefined')
-    return;
-
-  a = parseFloat(field_top.innerHTML.replace(',', '.'));
-  b = parseFloat(field_bottom.innerHTML.replace(',', '.'));
-
-  switch(current_operator) {
-    case '+': c = a + b; break;
-    case '-': c = a - b; break;
-    case '*': c = a * b; break;
-    case '/': c = a / b; break;
-  }
-  field_top.innerHTML = `${a} ${current_operator} ${b} =`; 
-  field_bottom.innerHTML = c;
-}
- 
 function keyboardPress(event) {
   switch(event.key) {
     case '%': keyLogic(main_buttons_children[0]); break;
@@ -276,6 +419,8 @@ function keyboardPress(event) {
     case '7': keyLogic(main_buttons_children[8]); break;
     case '8': keyLogic(main_buttons_children[9]); break;
     case '9': keyLogic(main_buttons_children[10]); break;
+    case 'x':
+    case 'X':
     case '*': keyLogic(main_buttons_children[11]); break;
     case '4': keyLogic(main_buttons_children[12]); break;
     case '5': keyLogic(main_buttons_children[13]); break;
@@ -303,6 +448,55 @@ function keyboardDown(event) {
   }    
 }
 
+function adjustFontSize(len) {
+  if(len <= 13) field_bottom.style.fontSize = '2.8rem';
+  else field_bottom.style.fontSize = '1.4rem';
+  formatBottom();
+}
+
+//on escape, del or called by function
+function clearInput(clear_all) {
+  if(clear_all) {
+    field_top.innerHTML = '';
+    current_operator = undefined;
+    calcA = undefined;
+    calcB = undefined;
+    waiting_for_b = false;
+    first_calc_done = false;
+  }
+  field_bottom.innerHTML = '0';
+  dont_change_b = false;
+  adjustFontSize(1);
+}
+
+function formatBottom() {
+  if(field_bottom.innerHTML.indexOf('Infinity') !== -1)
+    return;
+
+  // makes number split every 3 digits
+  if(field_bottom.innerHTML.length > 3
+    && field_bottom.innerHTML.indexOf(',') === -1)
+     {
+      let spaceless_copy = field_bottom.innerHTML.replace(/ /g, '');
+      let len = spaceless_copy.length;
+      let modulo = len % 3;
+      let insert_new_space = modulo ? -2 : -1;
+      let buf_str = '';
+  
+      for(let i = 0; i < len; i++) {
+        if(insert_new_space != -2)
+          insert_new_space++;
+  
+        if(i === modulo && i > 0 || insert_new_space === 3) {
+          buf_str += ' ';
+          insert_new_space = 0;
+        }
+        buf_str += spaceless_copy.charAt(i);
+      }
+      field_bottom.innerHTML = buf_str;
+    }
+}
+
 
 /* animation for main buttons on key press */
 function animateButton(target) {
@@ -326,3 +520,9 @@ function mouseUpButton() {
 }
 
 
+// przesuwanie czasem nie działa jak należy...
+// po znaku - może być wstawiona spacja przy formatowaniu, co należy zmienić
+// trzeba opracować plan radzenia sobie z notacją wykładniczą
+// numery powinny być ucinane jeśli są zbyt długie
+
+// po wykonaniu jakiegoś special calc można dopisywać do wyniku jakieś cyfry, a góra się nie zmiena
