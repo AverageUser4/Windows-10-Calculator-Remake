@@ -1,8 +1,6 @@
 /* variables and long-living event listeners*/
 
 // used globally
-const html = document.getRootNode();
-
 const memory_buttons_wrapper = document.getElementById('memoryButtonsWrapper');
 const memory_buttons_children = [];
 for(x of memory_buttons_wrapper.children)
@@ -17,7 +15,7 @@ for(x of main_buttons_wrapper.children)
 const wrapper = document.getElementById('calculatorWrapper');
 const calculator = document.getElementById('calculator');
 const calc_header = document.getElementById('calcHeaderWrapper');
-calc_header.addEventListener('mousedown', mouseDown);
+calc_header.addEventListener('mousedown', mouseDownCalcHeader);
 let init_calcX, init_calcY;
 let init_mouseX, init_mouseY;
 let offsetX, offsetY;
@@ -26,8 +24,6 @@ let init_width, init_height;
 let currently_moving;
 let min_width = parseInt(getComputedStyle(calculator).minWidth);
 let min_height = parseInt(getComputedStyle(calculator).minHeight);
-let top_extended = false;
-let left_extended = false;
 const res_pos = {
   top: document.getElementById('top'),
   bottom: document.getElementById('bottom'),
@@ -54,18 +50,52 @@ const field_bottom = document.getElementById('calculationFieldBottom');
 
 // animation for mouse click
 let currently_active;
-for(x of memory_buttons_children) {
+for(x of memory_buttons_children)
   x.addEventListener('mousedown', buttonMouseDown);
-  x.tabIndex = '-1';
-}
-for(x of main_buttons_children) {
+
+for(x of main_buttons_children)
   x.addEventListener('mousedown', buttonMouseDown);
-  x.tabIndex = '-1';
-}
+
+// animation and logic for top buttons
+const top_minimize = document.getElementById('minimize');
+const top_full = document.getElementById('full');
+const top_close = document.getElementById('close');
+top_minimize.addEventListener('mousedown', buttonMouseDown);
+top_full.addEventListener('mousedown', buttonMouseDown);
+top_close.addEventListener('mousedown', buttonMouseDown);
+
+/*
+- set when clicking full screen button
+- unset when pressing it again or drag-resizing
+*/
+let full_size = false;
+let fs_initX, fs_initY;
+let fs_init_width, fs_init_height;
+
+// animation and logic for field top overflow buttons
+let overflow_left_button = document.getElementById('overflowLeft');
+let overflow_right_button = document.getElementById('overflowRight');
+overflow_left_button.addEventListener('mousedown', buttonMouseDown);
+overflow_right_button.addEventListener('mousedown', buttonMouseDown);
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
 
 /* grabbing and moving around the calculator */
-function mouseDown(event) {
+function mouseDownCalcHeader(event) {
   calc_header.style.cursor = 'grabbing';
 
   init_calcX = wrapper.getBoundingClientRect().x;
@@ -73,22 +103,31 @@ function mouseDown(event) {
   init_mouseX = event.pageX;
   init_mouseY = event.pageY;
 
-  html.addEventListener('mousemove', move);
-  html.addEventListener('mouseup', mouseUp);
+  window.addEventListener('mousemove', moveCalc);
+  window.addEventListener('mouseup', mouseUpCalcHeader);
 }
 
-function mouseUp() {
+function mouseUpCalcHeader() {
   calc_header.style.cursor = 'grab';
-  html.removeEventListener('mousemove', move);
-  html.removeEventListener('mouseup', mouseUp);
+  window.removeEventListener('mousemove', moveCalc);
+  window.removeEventListener('mouseup', mouseUpCalcHeader);
 }
 
-function move(event) {
+function moveCalc(event) {
   offsetX = event.pageX - init_mouseX;
   offsetY = event.pageY - init_mouseY;
+  let left_val = init_calcX + offsetX;
+  let top_val = init_calcY + offsetY;
+  let cur_width = wrapper.getBoundingClientRect().width - 14;
+  let cur_height = wrapper.getBoundingClientRect().height - 14;
 
-  wrapper.style.left = `${init_calcX + offsetX}px`;
-  wrapper.style.top = `${init_calcY + offsetY}px`;
+  if(left_val < -14)left_val = -14;  
+  if(top_val < -14)top_val = -14;  
+  if(left_val > window.innerWidth - cur_width)left_val = window.innerWidth - cur_width;  
+  if(top_val > window.innerHeight - cur_height)top_val = window.innerHeight - cur_height;  
+
+  wrapper.style.left = `${left_val}px`;
+  wrapper.style.top = `${top_val}px`;
 }
 
 
@@ -103,25 +142,27 @@ function resizeMouseDown(event) {
   init_mouseX = event.pageX;
   init_mouseY = event.pageY;
 
-  html.addEventListener('mousemove', resizeMouseMove);
-  html.addEventListener('mouseup', resizeMouseUp);
+  window.addEventListener('mousemove', resizeMouseMove);
+  window.addEventListener('mouseup', resizeMouseUp);
 }
 
 function resizeMouseMove(event) {
-  offsetX = event.pageX - init_mouseX;
-  offsetY = event.pageY - init_mouseY;
+  let pageX_buf = event.pageX;
+  let pageY_buf = event.pageY;
+
+  if(pageX_buf < 0)pageX_buf = 0;
+  if(pageY_buf < 0)pageY_buf = 0;
+  if(pageX_buf > window.innerWidth)pageX_buf = window.innerWidth;
+  if(pageY_buf > window.innerHeight)pageY_buf = window.innerHeight;
+
+  offsetX = pageX_buf - init_mouseX;
+  offsetY = pageY_buf - init_mouseY;
 
   if(currently_moving === 'top' || currently_moving === 'topLeft'
   || currently_moving === 'topRight') 
   {
     calculator.style.height = `${init_height - offsetY}px`;
-    if(offsetY < 0) {
-      wrapper.style.top = `${init_calcY + offsetY}px`;
-      top_extended = true;
-    }
-    else if(parseInt(getComputedStyle(calculator).height) > min_height && top_extended)
-      wrapper.style.top = `${init_calcY - offsetY}px`;
-    else if(parseInt(getComputedStyle(calculator).height) > min_height)
+    if(offsetY < 0 || parseInt(getComputedStyle(calculator).height) > min_height) 
       wrapper.style.top = `${init_calcY + offsetY}px`;
   }
 
@@ -129,13 +170,7 @@ function resizeMouseMove(event) {
   || currently_moving === 'bottomLeft') 
   {
     calculator.style.width = `${init_width - offsetX}px`;
-    if(offsetX < 0) {
-      wrapper.style.left = `${init_calcX + offsetX}px`;
-      left_extended = true;
-    }
-    else if(parseInt(getComputedStyle(calculator).width) > min_width && left_extended)
-      wrapper.style.left = `${init_calcX - offsetX}px`;
-    else if(parseInt(getComputedStyle(calculator).width) > min_width)
+    if(offsetX < 0 || parseInt(getComputedStyle(calculator).width) > min_width)
       wrapper.style.left = `${init_calcX + offsetX}px`;
   }
 
@@ -148,14 +183,54 @@ function resizeMouseMove(event) {
   { calculator.style.width = `${init_width + offsetX}px`; }
 
   main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
+  full_size = false;
+  top_full.innerHTML = '<span>□</span>';
+  isTopOverflown();
 }
 
 function resizeMouseUp() {
-  html.removeEventListener('mousemove', resizeMouseMove);
-  html.removeEventListener('mouseup', resizeMouseUp);
-  top_extended = false;
-  left_extended = false;
+  window.removeEventListener('mousemove', resizeMouseMove);
+  window.removeEventListener('mouseup', resizeMouseUp);
 }
+
+/* seting calculator into min dimensions and putting it into original place */
+function minSize() {
+  wrapper.style.top = '0';
+  wrapper.style.left = '0';
+  calculator.style.width = '0';
+  calculator.style.height = '0';
+  top_full.innerHTML = '<span>□</span>';
+  full_size = false;
+  main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
+  isTopOverflown();
+}
+
+/* toggling between full window and normal mode */
+function fullSize() {
+  if(!full_size) {
+    fs_initX = wrapper.getBoundingClientRect().x + 'px';
+    fs_initY = wrapper.getBoundingClientRect().y + 'px';
+    fs_init_width = calculator.getBoundingClientRect().width + 'px';
+    fs_init_height = calculator.getBoundingClientRect().height + 'px';
+    wrapper.style.top = '-15px';
+    wrapper.style.left = '-15px';
+    calculator.style.width = '100vw';
+    calculator.style.height = '100vh';
+    top_full.innerHTML = '◱';
+    full_size = true;
+  }
+  else {
+    wrapper.style.left = fs_initX;
+    wrapper.style.top = fs_initY;
+    calculator.style.width = fs_init_width;
+    calculator.style.height = fs_init_height;
+    top_full.innerHTML = '<span>□</span>';
+    full_size = false;
+  }
+  main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
+  isTopOverflown();
+}
+
 
 /* change calculator's style when it's active */
 function calcAddActive(event) {
@@ -165,6 +240,19 @@ function calcAddActive(event) {
 
 function calcRemoveActive() {
   calculator.classList.remove('activeCalculator');
+}
+
+
+/* handling overflow in field top */
+function isTopOverflown() {
+  if(field_top.scrollWidth > field_top.clientWidth) {
+    overflow_left_button.style.display = 'block';
+    overflow_right_button.style.display = 'block';
+  }
+  else {
+    overflow_left_button.style.display = 'none';
+    overflow_right_button.style.display = 'none';
+  }
 }
 
 
@@ -245,7 +333,7 @@ function changeNumField(numVal, isNum, add) {
     if(field_bottom.innerHTML === '')
     field_bottom.innerHTML = '0';
   }
-  adjustFontSize(field_bottom.innerHTML.length);
+  adjustFontSize();
 }
 
 function changeSign() {
@@ -257,7 +345,7 @@ function changeSign() {
     
   field_bottom.innerHTML = parseBottom() * -1;
   field_bottom.innerHTML = field_bottom.innerHTML.replace('.', ',');
-  adjustFontSize(field_bottom.innerHTML.length);
+  adjustFontSize();
 }
 
 function percentCalc() {
@@ -274,7 +362,7 @@ function percentCalc() {
 function specialCalc(whichCalc) {
   let bottom_val = parseBottom();
 
-  if(typeof current_operator === 'undefined') {
+  if(typeof current_operator === 'undefined' || first_calc_done) {
     switch(whichCalc) {
       case 'onexth':
         field_top.innerHTML = `1/(${bottom_val}) =`
@@ -289,7 +377,9 @@ function specialCalc(whichCalc) {
         field_bottom.innerHTML = Math.sqrt(bottom_val);
         break;
     }
-    adjustFontSize(field_bottom.innerHTML.length);
+    first_calc_done = true;
+    adjustFontSize();
+    isTopOverflown();
   }
   else {
     switch(whichCalc) {
@@ -311,11 +401,12 @@ function specialCalc(whichCalc) {
 //on + - / *
 function defineOperator(cur_ope) {
   current_operator = cur_ope;
-  field_top.innerHTML = field_bottom.innerHTML + ` ${current_operator}`;
+  field_top.innerHTML = field_bottom.innerHTML.replace(/ /g, '') + ` ${current_operator}`;
   calcA = parseBottom();
   waiting_for_b = true;
   first_calc_done = false;
   dont_change_b = false;
+  isTopOverflown();
 }
 
 //on = or enter, when we are ready to perform calculation
@@ -335,18 +426,48 @@ function doMaths() {
     case '/': calcC = calcA / calcB; break;
   }
 
+  //questionable result correction
+  if(current_operator === '*' && String(calcC).indexOf('.') !== -1 && String(calcC).indexOf('e') === -1) {
+    // let calcA_str = String(calcA);
+    // let calcB_str = String(calcB);
+    // let calcA_deci_length = calcA_str.substring(calcA_str.indexOf('.') + 1).length;
+    // let calcB_deci_length = calcB_str.substring(calcB_str.indexOf('.') + 1).length;
+    // calcC = calcC.toFixed(calcA_deci_length + calcB_deci_length);
+ 
+    calcC = calcC.toFixed(24);
+
+    while(calcC.endsWith('0'))
+      calcC = calcC.slice(0, -1);
+  
+    if(calcC.endsWith('.'))
+      calcC = calcC.slice(0, -1);
+  }
+
+  // if(String(calcC).indexOf('.') !== -1) {
+  //   let calcC_str = String(calcC);
+
+  // }
+  
+  let calcA_buf = String(calcA).replace('.', ',');
+  let calcB_buf = String(calcB).replace('.', ',');
+
+  //add parentheses for negative B
   if(calcB < 0)
-    field_top.innerHTML = `${calcA} ${current_operator} (${calcB}) =`;
+    field_top.innerHTML = `${calcA_buf} ${current_operator} (${calcB_buf}) =`;
   else
-    field_top.innerHTML = `${calcA} ${current_operator} ${calcB} =`;
+    field_top.innerHTML = `${calcA_buf} ${current_operator} ${calcB_buf} =`;
+
+  if(String(calcC).length > 24)
+    calcC = Number(calcC).toExponential();
 
   field_bottom.innerHTML = String(calcC).replace('.', ',');
-
-  adjustFontSize(field_bottom.innerHTML.length);
 
   calcA = calcC;
   dont_change_b = true;
   first_calc_done = true;
+
+  adjustFontSize();
+  isTopOverflown();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -403,6 +524,12 @@ function keyLogic(element, clickInput) {
     case 'oneDivByX': specialCalc('onexth'); break;
     case 'xSquare': specialCalc('square'); break;
     case 'squareRoot': specialCalc('sqrt'); break;
+
+    case 'minimize': minSize(); break;
+    case 'full': fullSize(); break;
+
+    case 'overflowLeft': field_top.scrollLeft -= 50; break;
+    case 'overflowRight': field_top.scrollLeft += 50; break;
   }
 }
 
@@ -448,8 +575,8 @@ function keyboardDown(event) {
   }    
 }
 
-function adjustFontSize(len) {
-  if(len <= 13) field_bottom.style.fontSize = '2.8rem';
+function adjustFontSize() {
+  if(field_bottom.innerHTML.length <= 12) field_bottom.style.fontSize = '2.8rem';
   else field_bottom.style.fontSize = '1.4rem';
   formatBottom();
 }
@@ -463,19 +590,23 @@ function clearInput(clear_all) {
     calcB = undefined;
     waiting_for_b = false;
     first_calc_done = false;
+    isTopOverflown();
   }
   field_bottom.innerHTML = '0';
   dont_change_b = false;
-  adjustFontSize(1);
+  adjustFontSize();
 }
 
 function formatBottom() {
   if(field_bottom.innerHTML.indexOf('Infinity') !== -1)
     return;
 
+  field_bottom.innerHTML = field_bottom.innerHTML.replace('.', ',');
+
   // makes number split every 3 digits
   if(field_bottom.innerHTML.length > 3
-    && field_bottom.innerHTML.indexOf(',') === -1)
+    && field_bottom.innerHTML.indexOf(',') === -1
+    && field_bottom.innerHTML.indexOf('e') === -1)
      {
       let spaceless_copy = field_bottom.innerHTML.replace(/ /g, '');
       let len = spaceless_copy.length;
@@ -498,13 +629,14 @@ function formatBottom() {
 }
 
 
-/* animation for main buttons on key press */
+/* animation for buttons on key press */
 function animateButton(target) {
   target.classList.add('active');
   setTimeout(() => target.classList.remove('active'), 80);
 }
-/* animation for main buttons on click and logic trigger */
+/* animation for buttons on click and logic trigger */
 function buttonMouseDown(event) {
+  event.stopPropagation();
   currently_active = event.currentTarget;
   currently_active.classList.add('active');
   currently_active.addEventListener('mouseup', mouseUpButton);
@@ -518,11 +650,3 @@ function mouseUpWindow() {
 function mouseUpButton() {
   keyLogic(currently_active, 'value');
 }
-
-
-// przesuwanie czasem nie działa jak należy...
-// po znaku - może być wstawiona spacja przy formatowaniu, co należy zmienić
-// trzeba opracować plan radzenia sobie z notacją wykładniczą
-// numery powinny być ucinane jeśli są zbyt długie
-
-// po wykonaniu jakiegoś special calc można dopisywać do wyniku jakieś cyfry, a góra się nie zmiena
