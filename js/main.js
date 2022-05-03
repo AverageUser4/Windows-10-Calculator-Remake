@@ -73,10 +73,21 @@ let fs_initX, fs_initY;
 let fs_init_width, fs_init_height;
 
 // animation and logic for field top overflow buttons
-let overflow_left_button = document.getElementById('overflowLeft');
-let overflow_right_button = document.getElementById('overflowRight');
+const overflow_left_button = document.getElementById('overflowLeft');
+const overflow_right_button = document.getElementById('overflowRight');
 overflow_left_button.addEventListener('mousedown', buttonMouseDown);
 overflow_right_button.addEventListener('mousedown', buttonMouseDown);
+
+// logic for menu button and menu scrolling
+const menu_open = document.getElementById('menu');
+const menu_close = document.getElementById('menuClose');
+const menu_wrapper = document.getElementById('menuWrapper');
+const menu_scrollbar = document.getElementById('menuScrollbar');
+menu_open.addEventListener('mousedown', buttonMouseDown);
+menu_close.addEventListener('mousedown', buttonMouseDown);
+menu_wrapper.addEventListener('wheel', scrollMenu);
+let menu_scroll_position = 0;
+let scroll_pos_max = -932 + calculator.clientHeight;
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -186,6 +197,7 @@ function resizeMouseMove(event) {
   full_size = false;
   top_full.innerHTML = '<span>□</span>';
   isTopOverflown();
+  scrollMenu();
 }
 
 function resizeMouseUp() {
@@ -203,6 +215,7 @@ function minSize() {
   full_size = false;
   main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
   isTopOverflown();
+  scrollMenu();
 }
 
 /* toggling between full window and normal mode */
@@ -229,17 +242,39 @@ function fullSize() {
   }
   main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
   isTopOverflown();
+  scrollMenu();
 }
 
 
 /* change calculator's style when it's active */
 function calcAddActive(event) {
   calculator.classList.add('activeCalculator');
-  event.stopPropagation();
+  if(typeof event !== 'undefined')
+    event.stopPropagation();
 }
-
 function calcRemoveActive() {
   calculator.classList.remove('activeCalculator');
+}
+
+/* menu scrolling */
+function scrollMenu(event) {
+  if(typeof event !== 'undefined') {
+    if(event.deltaY > 0)
+      menu_scroll_position -= 25;
+    else
+      menu_scroll_position += 25;
+  }
+
+  scroll_pos_max = -932 + calculator.clientHeight;
+
+  if(menu_scroll_position > 0)
+    menu_scroll_position = 0;
+  else if(menu_scroll_position < scroll_pos_max)
+    menu_scroll_position = scroll_pos_max;
+
+  menu_scrollbar.style.top = menu_scroll_position * (803 / scroll_pos_max) + 'px';
+  menu_wrapper.style.top = menu_scroll_position + 'px';
+  calcAddActive();
 }
 
 
@@ -419,6 +454,9 @@ function doMaths() {
   if(!dont_change_b)
     calcB = parseBottom();
 
+  calcA = Number(calcA);
+  calcB = Number(calcB);
+
   switch(current_operator) {
     case '+': calcC = calcA + calcB; break;
     case '-': calcC = calcA - calcB; break;
@@ -426,27 +464,8 @@ function doMaths() {
     case '/': calcC = calcA / calcB; break;
   }
 
-  //questionable result correction
-  if(current_operator === '*' && String(calcC).indexOf('.') !== -1 && String(calcC).indexOf('e') === -1) {
-    // let calcA_str = String(calcA);
-    // let calcB_str = String(calcB);
-    // let calcA_deci_length = calcA_str.substring(calcA_str.indexOf('.') + 1).length;
-    // let calcB_deci_length = calcB_str.substring(calcB_str.indexOf('.') + 1).length;
-    // calcC = calcC.toFixed(calcA_deci_length + calcB_deci_length);
- 
-    calcC = calcC.toFixed(24);
-
-    while(calcC.endsWith('0'))
-      calcC = calcC.slice(0, -1);
-  
-    if(calcC.endsWith('.'))
-      calcC = calcC.slice(0, -1);
-  }
-
-  // if(String(calcC).indexOf('.') !== -1) {
-  //   let calcC_str = String(calcC);
-
-  // }
+  if(String(calcC).indexOf('.') !== -1)
+    calcC = resultCorrection(calcC);
   
   let calcA_buf = String(calcA).replace('.', ',');
   let calcB_buf = String(calcB).replace('.', ',');
@@ -456,7 +475,7 @@ function doMaths() {
     field_top.innerHTML = `${calcA_buf} ${current_operator} (${calcB_buf}) =`;
   else
     field_top.innerHTML = `${calcA_buf} ${current_operator} ${calcB_buf} =`;
-
+    
   if(String(calcC).length > 24)
     calcC = Number(calcC).toExponential();
 
@@ -468,6 +487,82 @@ function doMaths() {
 
   adjustFontSize();
   isTopOverflown();
+}
+
+function resultCorrection(calcC) {
+  let calcA_str = String(calcA);
+  let calcB_str = String(calcB);
+  let calcA_deci_length = calcA_str.substring(calcA_str.indexOf('.') + 1).length;
+  let calcB_deci_length = calcB_str.substring(calcB_str.indexOf('.') + 1).length;
+
+  //removing trailing zeros
+  if(String(calcC).indexOf('e') === -1) {
+    switch(current_operator) {
+      case '+':
+      case '-':
+        calcC = calcC.toFixed(Math.max(calcA_deci_length, calcB_deci_length));
+        break;
+      case '*':
+        calcC = calcC.toFixed(calcA_deci_length + calcB_deci_length);
+        break;
+      case '/':
+        calcC = calcC.toPrecision(21);
+        break;
+    }
+
+    calcC = String(calcC);
+
+    while(calcC.endsWith('0'))
+      calcC = calcC.slice(0, -1);
+  
+    if(calcC.endsWith('.')) {
+      calcC = calcC.slice(0, -1);
+      return calcC;
+    }
+  }
+
+  calcC = String(calcC);
+  let calcC_arr = calcC.split('.');
+  let dot_pos = calcC_arr[0].length;
+  let first_not_zero_pos = 1000;
+  let remove_some = false;
+
+  //removing very little fraction after zeros, eg. 1 / 10 = 0,10000000000000005551
+  if(!calcC.startsWith('0'))
+    first_not_zero_pos = dot_pos - 1;
+
+  for(let i = dot_pos + 1; i < calcC.length; i++) {
+    if(calcC.charAt(i) === 'e')
+      break;
+    if(calcC.charAt(i) !== '0' && !remove_some)
+      first_not_zero_pos = i;
+    if(i > first_not_zero_pos + 5) {
+      remove_some = true;
+      break;
+    }
+  }
+  if(remove_some)
+    calcC = calcC.slice(0, first_not_zero_pos + 1) + (calcC.indexOf('e') !== -1 ? calcC.slice(calcC.indexOf('e')) : '');
+
+  //changing 9,999999999e+20 to 1e+21 etc.
+  if(calcC.indexOf('e') !== -1 && calcC_arr[0] === '9') {
+    let full_exp = calcC.slice(calcC.indexOf('e'));
+    let e_and_sign = full_exp.slice(0, 2);
+    let exp_val = full_exp.slice(2);
+    let nine_count = 0;
+
+    for(let i = dot_pos + 1; i < calcC.length; i++) {
+      if(calcC.charAt(i) === '9')
+        nine_count++;
+      if(nine_count > 5) {
+        exp_val = Number(exp_val);
+        exp_val += 1;
+        calcC = 1 + e_and_sign + exp_val;
+        break;
+      }
+    }
+  }
+  return calcC;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -530,10 +625,14 @@ function keyLogic(element, clickInput) {
 
     case 'overflowLeft': field_top.scrollLeft -= 50; break;
     case 'overflowRight': field_top.scrollLeft += 50; break;
+
+    case 'menu': menu_wrapper.style.display = 'block'; break;
+    case 'menuClose': menu_wrapper.style.display = 'none'; break;
   }
 }
 
 function keyboardPress(event) {
+  calcAddActive();
   switch(event.key) {
     case '%': keyLogic(main_buttons_children[0]); break;
     case 'Delete': keyLogic(main_buttons_children[1]); break;
@@ -562,7 +661,8 @@ function keyboardPress(event) {
     case ',':
     case '.': keyLogic(main_buttons_children[22]); break;
     case '=':
-    case 'Enter': keyLogic(main_buttons_children[23]); break; 
+    case 'Enter': keyLogic(main_buttons_children[23]); break;
+    default: calcRemoveActive(); break;
   }
 }
 
@@ -572,7 +672,7 @@ function keyboardDown(event) {
     case 'Delete':
     case 'Escape':
       keyboardPress(event);
-  }    
+  }
 }
 
 function adjustFontSize() {
@@ -636,6 +736,7 @@ function animateButton(target) {
 }
 /* animation for buttons on click and logic trigger */
 function buttonMouseDown(event) {
+  calcAddActive(event);
   event.stopPropagation();
   currently_active = event.currentTarget;
   currently_active.classList.add('active');
@@ -650,3 +751,9 @@ function mouseUpWindow() {
 function mouseUpButton() {
   keyLogic(currently_active, 'value');
 }
+
+/*
+- szybkie przesunięcie przy pomniejszaniu przesuwa kalkulator
+- dodać wykrywanie okresu i usuwanie cyfr na końcu które nie są z nim zgodne
+- po specialCalc nie ma korekcji rezultatów, można ją dodać
+*/

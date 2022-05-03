@@ -41,8 +41,8 @@ $resize-width: 15px;
 
 #calculatorWrapper {
   position: absolute;
-  left: 400px;
-  top: 100px;
+  //left: 400px;
+  //top: 100px;
   padding: $resize-width;
   //background-color: red;
 }
@@ -92,6 +92,7 @@ $resize-width: 15px;
   background-color: #1F1F1F;
   color: white;
   outline: 1px solid #333;
+  overflow: hidden;
 }
 
 .activeCalculator {
@@ -106,7 +107,9 @@ $resize-width: 15px;
 #calcHeaderWrapper {
   display: flex;
   justify-content: space-between;
-  //background-color: green;
+  z-index: 6;
+  position: relative;
+  background-color: #1f1f1f;
   height: 30px;
   box-sizing: border-box;
   color: #666;
@@ -148,10 +151,12 @@ $resize-width: 15px;
 
 /* menu, current mode, leave on top and history */
 #underHeader {
-  padding: 0 1px;
+  padding: 1px 1px 0 0;
   height: 40px;
   display: flex;
   justify-content: space-between;
+  position: relative;
+  box-sizing: border-box;
   div { display: flex; }
   h2 {
     font-size: 1.2rem;
@@ -163,8 +168,34 @@ $resize-width: 15px;
     width: 40px;
     &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
   }
+  .active { background-color: #4d4d4d !important; }
+  #menuWrapper {
+    display: none;
+    padding-bottom: 50px;
+    z-index: 5;
+    background-color: #222;
+    width: 250px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: 0.15s;
+    button { height: 40px; }
+    ul { list-style-type: none; font-size: 0.9rem; }
+    li { padding: 10px 0 10px 15px; &:hover { background-color: #4a4a4a; } }
+    .liHead { padding-left: 10px; font-size: 1rem; font-weight: bold; &:hover { background-color: transparent; } }
+    #menuScrollbar {
+      display: block;
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 3px;
+      height: 100px;
+      background-color: #787878;
+      transition: 0.15s;
+    }
+  }
+  #menu:hover, #menuClose:hover { background-color: #333; outline: none; }
 }
-#menu:hover { background-color: #333; outline: none; }
 
 /* field for current calculations */
 #calculationWrapper {
@@ -195,7 +226,7 @@ $resize-width: 15px;
   padding-top: 3px;
   padding-left: 5.5px;
   box-sizing: border-box;
-  color: #7C7C7C;
+  color: #939393;
   font-size: 0.85rem;
   overflow: hidden;
   white-space: nowrap;
@@ -243,3 +274,70 @@ $resize-width: 15px;
   .active { background-color: #6D6D6D !important; }
 }
 
+/* main calculator on left, memory and history on right */
+#calculatorLeftAndRightWrapper {
+  display: flex;
+}
+
+#calculatorRightWrapper {
+  width: 100%;
+  .crwChooseButton {
+    font-size: 1rem;
+    height: 40px;
+    font-weight: 500;
+    padding: 0 15px;
+    &:hover { color: #ddd; }
+  }
+  .chosen {
+    text-decoration: underline #4C4A48 3px;
+    text-underline-offset: 7px;
+  }
+}
+
+#historyOrMemoryField {
+  padding: 25px 0 0;
+  font-size: 0.9rem;
+  & > p {
+    padding: 0 15px;
+  }
+}
+
+.calcRightElement {
+  text-align: right;
+  padding: 8px 15px;
+  margin-bottom: 15px;
+  &:hover { background-color: #353535; }
+  p { color: #939393; }
+  h4 { font-weight: 500; font-size: 1.4rem; }
+  button {
+    background-color: black;
+    padding: 5px 0;
+    width: 35px;
+    font-weight: 500;
+    &:hover { 
+      background-color: #4B4947;
+      outline: 1px solid #777;
+      color: black;
+    }
+  }
+}
+
+#deletewrapper {
+  //background-color: #1F1F1F;
+  background-color: red !important;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100px !important;
+  height: 100px !important;
+  z-index: 100;
+}
+
+#deleteHisMem {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
