@@ -1,15 +1,21 @@
 /* variables and long-living event listeners*/
 
 // used globally
-const memory_buttons_wrapper = document.getElementById('memoryButtonsWrapper');
-const memory_buttons_children = [];
-for(x of memory_buttons_wrapper.children)
-  memory_buttons_children.push(x);
+// const memory_buttons_wrapper = document.getElementById('memoryButtonsWrapper');
+// const memory_buttons_children = [];
+// for(x of memory_buttons_wrapper.children)
+//   memory_buttons_children.push(x);
 
 const main_buttons_wrapper = document.getElementById('mainButtonsWrapper');
 const main_buttons_children = [];
 for(x of main_buttons_wrapper.children)
   main_buttons_children.push(x);
+
+// animation and logic trigger after mouse click for all buttons
+let currently_active;
+const all_buttons = document.getElementsByTagName('BUTTON');
+for(let x of all_buttons)
+  x.addEventListener('mousedown', buttonMouseDown);
 
 // moving / resizing calculator
 const wrapper = document.getElementById('calculatorWrapper');
@@ -37,10 +43,12 @@ const res_pos = {
 for(let x in res_pos)
   res_pos[x].addEventListener('mousedown', resizeMouseDown);
 
+
 // change calculator's style when it's active
 window.addEventListener('mousedown', calcRemoveActive);
 calculator.addEventListener('mousedown', calcAddActive);
 wrapper.addEventListener('mousedown', calcAddActive);
+
 
 // inserting input with keyboard
 window.addEventListener('keypress', keyboardPress);
@@ -48,48 +56,96 @@ window.addEventListener('keydown', keyboardDown);
 const field_top = document.getElementById('calculationFieldTop');
 const field_bottom = document.getElementById('calculationFieldBottom');
 
-// animation for mouse click
-let currently_active;
-for(x of memory_buttons_children)
-  x.addEventListener('mousedown', buttonMouseDown);
 
-for(x of main_buttons_children)
-  x.addEventListener('mousedown', buttonMouseDown);
-
-// animation and logic for top buttons
-const top_minimize = document.getElementById('minimize');
+// used to toggle between ◱ and □ inside the button
 const top_full = document.getElementById('full');
-const top_close = document.getElementById('close');
-top_minimize.addEventListener('mousedown', buttonMouseDown);
-top_full.addEventListener('mousedown', buttonMouseDown);
-top_close.addEventListener('mousedown', buttonMouseDown);
-
-/*
-- set when clicking full screen button
-- unset when pressing it again or drag-resizing
-*/
 let full_size = false;
 let fs_initX, fs_initY;
 let fs_init_width, fs_init_height;
+/*
+full_size:
+- set when clicking full screen button
+- unset when pressing it again or drag-resizing
+*/
+
 
 // animation and logic for field top overflow buttons
 const overflow_left_button = document.getElementById('overflowLeft');
 const overflow_right_button = document.getElementById('overflowRight');
-overflow_left_button.addEventListener('mousedown', buttonMouseDown);
-overflow_right_button.addEventListener('mousedown', buttonMouseDown);
+
 
 // logic for menu button and menu scrolling
 const menu_open = document.getElementById('menu');
 const menu_close = document.getElementById('menuClose');
 const menu_wrapper = document.getElementById('menuWrapper');
 const menu_scrollbar = document.getElementById('menuScrollbar');
-menu_open.addEventListener('mousedown', buttonMouseDown);
-menu_close.addEventListener('mousedown', buttonMouseDown);
 menu_wrapper.addEventListener('wheel', scrollMenu);
 let menu_scroll_position = 0;
 let scroll_pos_max = -932 + calculator.clientHeight;
 
 
+// calculator right side logic
+const calc_right_wrapper = document.getElementById('calculatorRightWrapper');
+const history_show_button = document.getElementById('showHistoryButton');
+const memory_show_button = document.getElementById('mShow');
+
+
+// history logic
+const memory_field = document.getElementById('memoryField');
+let currently_showing = 'history';
+
+const history_field = document.getElementById('historyField');
+let next_his_div_id = 0;
+
+function historyAdd() {
+  let his_div = document.createElement('div');
+  his_div.id = `his${next_his_div_id}`;
+  next_his_div_id++;
+  his_div.innerHTML = `<p>${field_top.innerHTML}</p><h4>${field_bottom.innerHTML}</h4>`;
+  his_div.addEventListener('mousedown', buttonMouseDown);
+  history_field.insertBefore(his_div, history_field.firstElementChild);
+
+  if(history_field.children[1].tagName === 'P')
+    history_field.removeChild(history_field.lastElementChild);
+  if(history_field.childElementCount > 20)
+    history_field.removeChild(history_field.lastElementChild);
+}
+
+function historyRead(element) {
+  let top_buf = element.children[0].innerHTML;
+  //let bottom_buf = element.children[1].innerHTML;
+
+  if(top_buf.indexOf(' + ') !== -1)
+    current_operator = '+';
+  else if(top_buf.indexOf(' - ') !== -1)
+    current_operator = '-';
+  else if(top_buf.indexOf(' * ') !== -1)
+    current_operator = '*';
+  else if(top_buf.indexOf(' / ') !== -1)
+    current_operator = '/';
+
+  const A_and_B = top_buf.split(` ${current_operator} `);
+
+  calcA = parseFloat(A_and_B[0].replace(',', '.'));
+  calcB = parseFloat(A_and_B[1].replace(',', '.'));
+
+  doMaths('true');
+}
+
+function hisMemClear() {
+  if(currently_showing === 'history')
+    history_field.innerHTML = '<p>Nie ma jeszcze historii</p>';
+  else
+    memory_field.innerHTML = '<p>Brak elementów zapisanych w pamięci</p>';
+}
+
+/*
+
+scrollbar powinien mieć długość reprezentującą % widocznego pola
+
+*/
+
+
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +159,20 @@ let scroll_pos_max = -932 + calculator.clientHeight;
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
+
+/* functions considering left and right side of calculator */
+function enoughSpaceForRight() {
+  if(calculator.clientWidth >= 560) {
+    calc_right_wrapper.style.display = 'block';
+    history_show_button.style.display = 'none';
+    memory_show_button.style.display = 'none';
+  }
+  else {
+    calc_right_wrapper.style.display = 'none';
+    history_show_button.style.display = 'block';
+    memory_show_button.style.display = 'block';
+  }
+}
 
 
 /* grabbing and moving around the calculator */
@@ -143,6 +213,12 @@ function moveCalc(event) {
 
 
 /* resizing calculator */
+function resizeUpdate() {
+  isTopOverflown();
+  scrollMenu();
+  enoughSpaceForRight();
+}
+
 function resizeMouseDown(event) {
   currently_moving = event.currentTarget.id;
 
@@ -196,8 +272,7 @@ function resizeMouseMove(event) {
   main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
   full_size = false;
   top_full.innerHTML = '<span>□</span>';
-  isTopOverflown();
-  scrollMenu();
+  resizeUpdate();
 }
 
 function resizeMouseUp() {
@@ -214,8 +289,7 @@ function minSize() {
   top_full.innerHTML = '<span>□</span>';
   full_size = false;
   main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
-  isTopOverflown();
-  scrollMenu();
+  resizeUpdate();
 }
 
 /* toggling between full window and normal mode */
@@ -241,8 +315,7 @@ function fullSize() {
     full_size = false;
   }
   main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
-  isTopOverflown();
-  scrollMenu();
+  resizeUpdate();
 }
 
 
@@ -445,7 +518,7 @@ function defineOperator(cur_ope) {
 }
 
 //on = or enter, when we are ready to perform calculation
-function doMaths() {
+function doMaths(dont_add) {
   if(typeof current_operator === 'undefined')
     return;
     
@@ -487,6 +560,8 @@ function doMaths() {
 
   adjustFontSize();
   isTopOverflown();
+  if(typeof dont_add === 'undefined')
+    historyAdd();
 }
 
 function resultCorrection(calcC) {
@@ -628,7 +703,12 @@ function keyLogic(element, clickInput) {
 
     case 'menu': menu_wrapper.style.display = 'block'; break;
     case 'menuClose': menu_wrapper.style.display = 'none'; break;
+
+    case 'deleteHisMem': hisMemClear();
   }
+  
+  if(element.id.indexOf('his') !== -1)
+    historyRead(element);
 }
 
 function keyboardPress(event) {

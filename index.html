@@ -46,9 +46,9 @@
             <div>
               <button id="menu">☰</button>
               <h2>Standardowy</h2>
-              <button>⇱</button>
+              <button id="embedButton">⇱</button>
             </div>
-            <button>⟲</button>
+            <button id="showHistoryButton">⟲</button>
             <div id="menuWrapper">
               <button id="menuClose">☰</button>
               <ul>
@@ -127,29 +127,41 @@
   
           <button class="crwChooseButton chosen">Historia</button>
           <button class="crwChooseButton">Pamięć</button>
-          <div id="historyOrMemoryField">
-            <!--<p>Nie ma jeszcze historii</p>-->
-            <div class="calcRightElement"><p>150 * 5 =</p><h4>750</h4></div>
-            <div class="calcRightElement"><p>150 * 5 =</p><h4>750</h4></div>
-            <div class="calcRightElement"><p>150 * 5 =</p><h4>750</h4></div>
-            <div class="calcRightElement"><p>150 * 5 =</p><h4>750</h4></div>
-            <div class="calcRightElement"><p>150 * 5 =</p><h4>750</h4></div>
-            <div class="calcRightElement"><p>150 * 5 =</p><h4>750</h4></div>
-            <div class="calcRightElement">
+
+          <div id="historyFieldWrapper">
+            <div id="historyField">
+              <p>Nie ma jeszcze historii</p>
+              <!--
+              <div><p>150 * 5 =</p><h4>750</h4></div>
+              <div><p>150 * 5 =</p><h4>750</h4></div>
+              <div><p>150 * 5 =</p><h4>750</h4></div>
+              <div><p>150 * 5 =</p><h4>750</h4></div>
+              <div><p>150 * 5 =</p><h4>750</h4></div>
+              -->
+            </div>
+            <div id="historyScrollbar"></div>
+          </div>
+
+          <div id="memoryField">
+
+            <div class="memoryElement">
               <h4>8</h4>
               <button>MC</button>
               <button>M+</button>
               <button>M-</button>
             </div>
+
           </div>
-   
+
+        </div>
+
+        <div id="deleteWrapper">
+          <button id="deleteHisMem">✕</button>
         </div>
 
       </div>
 
-      <div id="deleteWrapper">
-        <button id="deleteHisMem">✕</button>
-      </div>
+
 
     </div>
               

@@ -36,6 +36,30 @@ button {
   background-color: #4C4A48;
 }
 
+#close.active {
+  background-color: #f1707a !important;
+}
+
+#minimize.active,
+#full.active,
+#menu.active,
+#menuClose.active,
+#mainButtonsWrapper > button:last-of-type.active,
+#historyField > div.active,
+#memoryField > div.active {
+  background-color: #4d4d4d !important;
+}
+
+#embedButton.active,
+#showHistoryButton.active,
+#memoryButtonsWrapper > button.active,
+#overflowLeft.active,
+#overflowRight.active,
+#mainButtonsWrapper > button:not(:last-of-type).active,
+#deleteHisMem.active {
+  background-color: #6d6d6d !important;
+}
+
 /* calculator wrapper and it's parts used for resizing */
 #calculatorWrapper {
   position: absolute;
@@ -143,7 +167,7 @@ button {
 #calcHeaderWrapper {
   display: flex;
   justify-content: space-between;
-  z-index: 6;
+  z-index: 3;
   position: relative;
   background-color: #1f1f1f;
   height: 30px;
@@ -176,12 +200,6 @@ button {
 }
 #calcHeaderWrapper div {
   display: flex;
-}
-#calcHeaderWrapper div .active {
-  background-color: #4c4c4c;
-}
-#calcHeaderWrapper div button:last-child.active {
-  background-color: #f1707a;
 }
 
 #minimize {
@@ -233,13 +251,13 @@ button {
   background-color: #4A4A4A;
   outline: 1px solid #666;
 }
-#underHeader .active {
-  background-color: #4d4d4d !important;
+#underHeader #showHistoryButton {
+  display: none;
 }
 #underHeader #menuWrapper {
   display: none;
   padding-bottom: 50px;
-  z-index: 5;
+  z-index: 4;
   background-color: #222;
   width: 250px;
   position: absolute;
@@ -312,9 +330,6 @@ button {
 #calculationWrapper #overflowRight {
   right: 1px;
 }
-#calculationWrapper .active {
-  background-color: #6D6D6D !important;
-}
 
 #calculationFieldTop {
   height: 30px;
@@ -353,8 +368,8 @@ button {
   background-color: #4A4A4A;
   outline: 1px solid #666;
 }
-#memoryButtonsWrapper .active {
-  background-color: #6D6D6D !important;
+#memoryButtonsWrapper #mShow {
+  display: none;
 }
 
 /* main buttons */
@@ -384,17 +399,23 @@ button {
 #mainButtonsWrapper #equals:hover {
   background-color: #474543;
 }
-#mainButtonsWrapper .active {
-  background-color: #6D6D6D !important;
-}
 
 /* main calculator on left, memory and history on right */
 #calculatorLeftAndRightWrapper {
   display: flex;
 }
 
+#calculatorLeftWrapper {
+  z-index: 5;
+  min-width: 320px;
+  flex-basis: 100%;
+  position: relative;
+}
+
 #calculatorRightWrapper {
-  width: 100%;
+  min-width: 240px;
+  max-width: 320px;
+  flex-basis: 100%;
 }
 #calculatorRightWrapper .crwChooseButton {
   font-size: 1rem;
@@ -410,49 +431,67 @@ button {
   text-underline-offset: 7px;
 }
 
-#historyOrMemoryField {
+#historyFieldWrapper, #memoryFieldWrapper {
+  position: relative;
+}
+
+#historyField, #memoryField {
   padding: 25px 0 0;
   font-size: 0.9rem;
 }
-#historyOrMemoryField > p {
+#historyField > p, #memoryField > p {
   padding: 0 15px;
 }
 
-.calcRightElement {
+#historyField > div, #memoryField > div {
   text-align: right;
   padding: 8px 15px;
   margin-bottom: 15px;
 }
-.calcRightElement:hover {
+#historyField > div:hover, #memoryField > div:hover {
   background-color: #353535;
 }
-.calcRightElement p {
+#historyField > div p, #memoryField > div p {
   color: #939393;
 }
-.calcRightElement h4 {
+#historyField > div h4, #memoryField > div h4 {
   font-weight: 500;
   font-size: 1.4rem;
 }
-.calcRightElement button {
+#historyField > div button, #memoryField > div button {
   background-color: black;
   padding: 5px 0;
   width: 35px;
   font-weight: 500;
 }
-.calcRightElement button:hover {
+#historyField > div button:hover, #memoryField > div button:hover {
   background-color: #4B4947;
   outline: 1px solid #777;
   color: black;
 }
 
-#deletewrapper {
-  background-color: red !important;
+#historyScrollbar {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 2px;
+  width: 2px;
+  height: 100px;
+  background-color: #787878;
+  transition: 0.15s;
+}
+
+#memoryField {
+  display: none;
+}
+
+#deleteWrapper {
+  background-color: #1F1F1F;
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 100px !important;
-  height: 100px !important;
-  z-index: 100;
+  width: 100%;
+  height: 42px;
 }
 
 #deleteHisMem {
@@ -460,8 +499,12 @@ button {
   height: 40px;
   font-size: 1.3rem;
   position: absolute;
-  top: 0;
-  left: 0;
+  bottom: 1px;
+  right: 1px;
+}
+#deleteHisMem:hover {
+  background-color: #4A4A4A;
+  outline: 1px solid #666;
 }
 
 /*# sourceMappingURL=main.css.map */

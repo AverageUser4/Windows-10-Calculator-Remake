@@ -36,6 +36,25 @@ button {
   background-color: #4C4A48;
 }
 
+#close.active { background-color: #f1707a !important; }
+
+#minimize.active,
+#full.active,
+#menu.active,
+#menuClose.active,
+#mainButtonsWrapper > button:last-of-type.active,
+#historyField > div.active,
+#memoryField > div.active { background-color: #4d4d4d !important; }
+
+#embedButton.active,
+#showHistoryButton.active,
+#memoryButtonsWrapper > button.active,
+#overflowLeft.active,
+#overflowRight.active,
+#mainButtonsWrapper > button:not(:last-of-type).active,
+#deleteHisMem.active { background-color: #6d6d6d !important; }
+
+
 /* calculator wrapper and it's parts used for resizing */
 $resize-width: 15px;
 
@@ -107,7 +126,7 @@ $resize-width: 15px;
 #calcHeaderWrapper {
   display: flex;
   justify-content: space-between;
-  z-index: 6;
+  z-index: 3;
   position: relative;
   background-color: #1f1f1f;
   height: 30px;
@@ -131,8 +150,6 @@ $resize-width: 15px;
   }
   div { 
     display: flex;
-    .active { background-color: #4c4c4c; }
-    button:last-child.active { background-color: #f1707a; }
   }
 }
 
@@ -168,11 +185,11 @@ $resize-width: 15px;
     width: 40px;
     &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
   }
-  .active { background-color: #4d4d4d !important; }
+  #showHistoryButton { display: none; }
   #menuWrapper {
     display: none;
     padding-bottom: 50px;
-    z-index: 5;
+    z-index: 4;
     background-color: #222;
     width: 250px;
     position: absolute;
@@ -218,7 +235,6 @@ $resize-width: 15px;
   }
   #overflowLeft { left: 1px; }
   #overflowRight { right: 1px; }
-  .active { background-color: #6D6D6D !important; }
 }
 
 #calculationFieldTop {
@@ -252,7 +268,7 @@ $resize-width: 15px;
     &:not(&:last-of-type) { margin-right: 5px; }
     &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
   }
-  .active { background-color: #6D6D6D !important; }
+  #mShow { display: none; }
 }
 
 /* main buttons */
@@ -271,7 +287,6 @@ $resize-width: 15px;
   }
   .black { background-color: #060606; }
   #equals { background-color: #31302F; &:hover { background-color: #474543; } }
-  .active { background-color: #6D6D6D !important; }
 }
 
 /* main calculator on left, memory and history on right */
@@ -279,8 +294,17 @@ $resize-width: 15px;
   display: flex;
 }
 
+#calculatorLeftWrapper {
+  z-index: 5;
+  min-width: 320px;
+  flex-basis: 100%;
+  position: relative;
+}
+
 #calculatorRightWrapper {
-  width: 100%;
+  min-width: 240px;
+  max-width: 320px;
+  flex-basis: 100%;
   .crwChooseButton {
     font-size: 1rem;
     height: 40px;
@@ -294,15 +318,17 @@ $resize-width: 15px;
   }
 }
 
-#historyOrMemoryField {
-  padding: 25px 0 0;
-  font-size: 0.9rem;
-  & > p {
-    padding: 0 15px;
-  }
+#historyFieldWrapper, #memoryFieldWrapper {
+  position: relative;
 }
 
-.calcRightElement {
+#historyField, #memoryField {
+  padding: 25px 0 0;
+  font-size: 0.9rem;
+  & > p { padding: 0 15px; }
+}
+
+#historyField > div, #memoryField > div {
   text-align: right;
   padding: 8px 15px;
   margin-bottom: 15px;
@@ -322,15 +348,41 @@ $resize-width: 15px;
   }
 }
 
-#deletewrapper {
-  //background-color: #1F1F1F;
-  background-color: red !important;
+#historyScrollbar {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 2px;
+  width: 2px;
+  height: 100px;
+  background-color: #787878;
+  transition: 0.15s;
+}
+
+///////////////
+///////////////
+///////////////
+///////////////
+///////////////
+///////////////
+#memoryField { display:none; }
+///////////////
+///////////////
+///////////////
+///////////////
+///////////////
+///////////////
+///////////////
+
+
+
+#deleteWrapper {
+  background-color: #1F1F1F;
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 100px !important;
-  height: 100px !important;
-  z-index: 100;
+  width: 100%;
+  height: 42px;
 }
 
 #deleteHisMem {
@@ -338,6 +390,7 @@ $resize-width: 15px;
   height: 40px;
   font-size: 1.3rem;
   position: absolute;
-  top: 0;
-  left: 0;
+  bottom: 1px;
+  right: 1px;
+  &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
 }
