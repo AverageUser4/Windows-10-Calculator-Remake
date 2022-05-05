@@ -290,8 +290,8 @@ button {
   display: block;
   position: absolute;
   top: 0;
-  right: 0;
-  width: 3px;
+  right: 2px;
+  width: 2px;
   height: 100px;
   background-color: #787878;
   transition: 0.15s;

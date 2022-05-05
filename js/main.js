@@ -81,7 +81,28 @@ const menu_wrapper = document.getElementById('menuWrapper');
 const menu_scrollbar = document.getElementById('menuScrollbar');
 menu_wrapper.addEventListener('wheel', scrollMenu);
 let menu_scroll_position = 0;
-let scroll_pos_max = -932 + calculator.clientHeight;
+let menu_scroll_height = 0;
+const menu_scroll_amount = 25;
+let menu_scroll_pos_max = -932 + calculator.clientHeight;
+let visible_menu_wrapper_height = (calculator.clientHeight - 30 - menu_wrapper.clientHeight) * -1; 
+
+window.addEventListener('dblclick', abc);
+function abc() {
+  //visible maleje zamiast rosnąć
+  visible_menu_wrapper_height = calculator.clientHeight - 30;
+  let visible_percent = visible_menu_wrapper_height / menu_wrapper.clientHeight;
+  menu_scroll_height = visible_menu_wrapper_height * visible_percent;
+  console.log('calculator height: ' + calculator.clientHeight);
+  console.log('visible height: ' + visible_menu_wrapper_height);
+  console.log('wrapper height: ' + menu_wrapper.clientHeight);
+  console.log('scroll height: ' + menu_scroll_height);
+  console.log(' ');
+}
+
+/*
+- scrollbar ma mieć długość zależną od długości strony
+*/
+
 
 
 // calculator right side logic
@@ -333,19 +354,19 @@ function calcRemoveActive() {
 function scrollMenu(event) {
   if(typeof event !== 'undefined') {
     if(event.deltaY > 0)
-      menu_scroll_position -= 25;
+      menu_scroll_position -= menu_scroll_amount;
     else
-      menu_scroll_position += 25;
+      menu_scroll_position += menu_scroll_amount;
   }
 
-  scroll_pos_max = -932 + calculator.clientHeight;
+  menu_scroll_pos_max = -932 + calculator.clientHeight;
 
   if(menu_scroll_position > 0)
     menu_scroll_position = 0;
-  else if(menu_scroll_position < scroll_pos_max)
-    menu_scroll_position = scroll_pos_max;
+  else if(menu_scroll_position < menu_scroll_pos_max)
+    menu_scroll_position = menu_scroll_pos_max;
 
-  menu_scrollbar.style.top = menu_scroll_position * (803 / scroll_pos_max) + 'px';
+  menu_scrollbar.style.top = menu_scroll_position * (803 / menu_scroll_pos_max) + 'px';
   menu_wrapper.style.top = menu_scroll_position + 'px';
   calcAddActive();
 }
