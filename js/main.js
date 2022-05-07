@@ -1,7 +1,7 @@
 /* variables and long-living event listeners*/
 
 // used globally
-// const memory_buttons_wrapper = document.getElementById('memoryButtonsWrapper');
+ const memory_buttons_wrapper = document.getElementById('memoryButtonsWrapper');
 // const memory_buttons_children = [];
 // for(x of memory_buttons_wrapper.children)
 //   memory_buttons_children.push(x);
@@ -74,67 +74,192 @@ const overflow_left_button = document.getElementById('overflowLeft');
 const overflow_right_button = document.getElementById('overflowRight');
 
 
-// logic for menu button and menu scrolling
-const menu_open = document.getElementById('menu');
-const menu_close = document.getElementById('menuClose');
+// logic for menu button, menu and his/mem height
 const menu_wrapper = document.getElementById('menuWrapper');
-const menu_scrollbar = document.getElementById('menuScrollbar');
-menu_wrapper.addEventListener('wheel', scrollMenu);
-let menu_scroll_position = 0;
-let menu_scroll_height = 0;
-const menu_scroll_amount = 25;
-let menu_scroll_pos_max = -932 + calculator.clientHeight;
-let visible_menu_wrapper_height = (calculator.clientHeight - 30 - menu_wrapper.clientHeight) * -1; 
-
-window.addEventListener('dblclick', abc);
-function abc() {
-  //visible maleje zamiast rosnąć
-  visible_menu_wrapper_height = calculator.clientHeight - 30;
-  let visible_percent = visible_menu_wrapper_height / menu_wrapper.clientHeight;
-  menu_scroll_height = visible_menu_wrapper_height * visible_percent;
-  console.log('calculator height: ' + calculator.clientHeight);
-  console.log('visible height: ' + visible_menu_wrapper_height);
-  console.log('wrapper height: ' + menu_wrapper.clientHeight);
-  console.log('scroll height: ' + menu_scroll_height);
-  console.log(' ');
-}
-
-/*
-- scrollbar ma mieć długość zależną od długości strony
-*/
-
+const menu_list = document.getElementById('menuList');
+const his_and_mem_wrapper = document.getElementById('hisAndMemWrapper');
 
 
 // calculator right side logic
 const calc_right_wrapper = document.getElementById('calculatorRightWrapper');
 const history_show_button = document.getElementById('showHistoryButton');
 const memory_show_button = document.getElementById('mShow');
+const delete_button_wrapper = document.getElementById('deleteWrapper');
+const delete_button = document.getElementById('deleteHisMem');
+const his_mem_choice_buttons_wrapper = document.getElementById('calcRightTop');
+const his_mem_opacity_wrapper = document.getElementById('calcLeftOpacityWrapper');
+his_mem_opacity_wrapper.addEventListener('click', showHisMem);
+let enough_space_for_right = true;
+let showing_right_wrapper_when_small = false;
+let showing_right_wrapper_when_big = true;
+let right_wrapper_not_hidden = true;
+
+/* functions considering left and right side of calculator */
+function enoughSpaceForRight() {
+  if(calculator.clientWidth >= 560 && !showing_right_wrapper_when_big) {
+    calc_right_wrapper.style.display = 'block';
+    calc_right_wrapper.style.minWidth = '240px';
+    calc_right_wrapper.style.maxWidth = '320px';
+    calc_right_wrapper.style.position = 'relative';
+    calc_right_wrapper.style.top = '0';
+    calc_right_wrapper.style.zIndex = '4';
+
+    delete_button_wrapper.style.zIndex = '4';
+    delete_button_wrapper.style.display = 'block';
+
+    his_mem_choice_buttons_wrapper.style.display = 'block';
+
+    history_show_button.style.display = 'none';
+    memory_show_button.style.display = 'none';
+
+    enough_space_for_right = true;
+    showing_right_wrapper_when_big = true;
+    right_wrapper_not_hidden = true;
+    shouldDisplayDeleteButton();
+  }
+  else if(calculator.clientWidth < 560 && right_wrapper_not_hidden) {
+    calc_right_wrapper.style.display = 'none';
+    calc_right_wrapper.style.minWidth = '100%';
+    calc_right_wrapper.style.maxWidth = '100%';
+    calc_right_wrapper.style.position = 'absolute';
+    calc_right_wrapper.style.top = '170px';
+    calc_right_wrapper.style.zIndex = '6';
+
+    delete_button_wrapper.style.zIndex = '6';
+    delete_button_wrapper.style.display = 'none';
+
+    his_mem_choice_buttons_wrapper.style.display = 'none';
+
+    history_show_button.style.display = 'block';
+    memory_show_button.style.display = 'block';
+
+    enough_space_for_right = false;
+    showing_right_wrapper_when_big = false;
+    right_wrapper_not_hidden = false;
+  }
+}
+
+function shouldDisplayDeleteButton() {
+  if(currently_showing === 'history') {
+    if(history_field.children[0].tagName === 'P')
+      delete_button.style.display = 'none';
+    else
+      delete_button.style.display = 'block';
+  }
+  else {
+    if(memory_field.children[0].tagName === 'P')
+      delete_button.style.display = 'none';
+    else
+      delete_button.style.display = 'block';
+  }
+}
+
+function showHisMem(show_what) {
+  if(!showing_right_wrapper_when_small) {
+    calc_right_wrapper.style.display = 'block';
+    delete_button_wrapper.style.display = 'block';
+    his_mem_opacity_wrapper.style.display = 'block';
+    show_what === 'history' ? historyChoose() : memoryChoose();
+    shouldDisplayDeleteButton();
+    showing_right_wrapper_when_small = true;
+  }
+  else {
+    calc_right_wrapper.style.display = 'none';
+    delete_button_wrapper.style.display = 'none';
+    his_mem_opacity_wrapper.style.display = 'none';
+    showing_right_wrapper_when_small = false;
+  }
+}
 
 
-// history logic
-const memory_field = document.getElementById('memoryField');
+// history and memory logic
 let currently_showing = 'history';
-
 const history_field = document.getElementById('historyField');
+const history_button = document.getElementById('hisButton');
 let next_his_div_id = 0;
+const memory_field = document.getElementById('memoryField');
+const memory_button = document.getElementById('memButton');
+let next_mem_div_id = 0;
 
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+/* history and memory functions */
+
+//choose which field to shown
+function historyChoose() {
+  const classes = history_button.classList;
+
+  if(classes.contains('chosen'))
+    return;
+
+  classes.add('chosen');
+  history_field.style.display = 'block';
+
+  memory_button.classList.remove('chosen');
+  memory_field.style.display = 'none';
+
+  currently_showing = 'history';
+  shouldDisplayDeleteButton();
+}
+
+function memoryChoose() {
+  const classes = memory_button.classList;
+
+  if(classes.contains('chosen'))
+    return;
+
+  classes.add('chosen');
+  memory_field.style.display = 'block';
+
+  history_button.classList.remove('chosen');
+  history_field.style.display = 'none';
+
+  currently_showing = 'memory';
+  shouldDisplayDeleteButton();
+}
+
+//clear currently shown field, after pressing button
+function hisMemClear() {
+  if(currently_showing === 'history')
+    history_field.innerHTML = '<p>Nie ma jeszcze historii</p>';
+  else
+    memoryClear();
+
+  shouldDisplayDeleteButton();
+}
+
+//history logic
 function historyAdd() {
-  let his_div = document.createElement('div');
-  his_div.id = `his${next_his_div_id}`;
+  const his_div = document.createElement('div');
+  his_div.addEventListener('mousedown', buttonMouseDown);
+  his_div.id = `historyElement${next_his_div_id}`;
   next_his_div_id++;
   his_div.innerHTML = `<p>${field_top.innerHTML}</p><h4>${field_bottom.innerHTML}</h4>`;
-  his_div.addEventListener('mousedown', buttonMouseDown);
   history_field.insertBefore(his_div, history_field.firstElementChild);
 
-  if(history_field.children[1].tagName === 'P')
-    history_field.removeChild(history_field.lastElementChild);
   if(history_field.childElementCount > 20)
     history_field.removeChild(history_field.lastElementChild);
+  else if(history_field.children[1].tagName === 'P')
+    history_field.removeChild(history_field.lastElementChild);
+
+  shouldDisplayDeleteButton();
 }
 
 function historyRead(element) {
   let top_buf = element.children[0].innerHTML;
-  //let bottom_buf = element.children[1].innerHTML;
 
   if(top_buf.indexOf(' + ') !== -1)
     current_operator = '+';
@@ -153,46 +278,104 @@ function historyRead(element) {
   doMaths('true');
 }
 
-function hisMemClear() {
-  if(currently_showing === 'history')
-    history_field.innerHTML = '<p>Nie ma jeszcze historii</p>';
-  else
-    memory_field.innerHTML = '<p>Brak elementów zapisanych w pamięci</p>';
+//memory logic
+function memoryClear() {
+  memory_field.innerHTML = '<p>Brak elementów zapisanych w pamięci</p>';
+  checkMemoryDisabled();
+  shouldDisplayDeleteButton();
 }
 
-/*
+function memoryRemoveElement(element) {
+  memory_field.removeChild(element.parentElement);
+  if(memory_field.childElementCount === 0)
+    memoryClear();
+}
 
-scrollbar powinien mieć długość reprezentującą % widocznego pola
+function checkMemoryDisabled() {
+  if(memory_field.children[0].tagName === 'P')
+    memory_buttons_wrapper.classList.add('disableSomeButtons');
+  else
+    memory_buttons_wrapper.classList.remove('disableSomeButtons');
+}
 
-*/
+function memoryRead(element) {
+  if(memory_field.children[0].tagName === 'P')
+    return;
+  
+  clearInput(true);
 
+  if(element === 'read latest')
+    field_bottom.innerHTML = memory_field.children[0].children[0].innerHTML;
+  else
+    field_bottom.innerHTML = element.children[0].innerHTML;
 
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
+  adjustFontSize();
+}
 
-/* functions considering left and right side of calculator */
-function enoughSpaceForRight() {
-  if(calculator.clientWidth >= 560) {
-    calc_right_wrapper.style.display = 'block';
-    history_show_button.style.display = 'none';
-    memory_show_button.style.display = 'none';
+function memoryAddOrSubstract(element, operation) {
+  //add or substract field bottom from memory element
+  if(memory_field.children[0].tagName === 'P')
+    memoryStore(0);
+
+  let a;
+  let b = parseBottom();
+
+  //when no specified element is chosen, it takes the latest one
+  if(element === 0) {
+    a = parseFloat(memory_field.children[0].children[0].innerHTML.replace(/ /g, '').replace(',', '.'));
+    memory_field.children[0].children[0].innerHTML = operation === 'add' ? a + b : a - b;
   }
   else {
-    calc_right_wrapper.style.display = 'none';
-    history_show_button.style.display = 'block';
-    memory_show_button.style.display = 'block';
+    let button_parent = element.parentElement;
+    a = parseFloat(button_parent.children[0].innerHTML.replace(/ /g, '').replace(',', '.'));
+    button_parent.children[0].innerHTML = operation === 'add' ? a + b : a - b;
   }
+}
+
+function memoryStore(store_what) {
+  //store current bottom field in memory
+  const mem_div = document.createElement('div');
+  mem_div.id = `memoryElement${next_mem_div_id}`;
+  mem_div.addEventListener('mousedown', buttonMouseDown);
+  mem_div.innerHTML = `<h4>${store_what}</h4>`;
+  
+  const mc_button = document.createElement('button');
+  mc_button.id = `mcButton${next_mem_div_id}`;
+  mc_button.innerHTML = 'MC';
+  mc_button.addEventListener('mousedown', buttonMouseDown);
+  mem_div.appendChild(mc_button);
+
+  const mp_button = document.createElement('button');
+  mp_button.id = `mpButton${next_mem_div_id}`;
+  mp_button.innerHTML = 'M+';
+  mp_button.addEventListener('mousedown', buttonMouseDown);
+  mem_div.appendChild(mp_button);
+
+  const mm_button = document.createElement('button');
+  mm_button.id = `mmButton${next_mem_div_id}`;
+  mm_button.innerHTML = 'M-';
+  mm_button.addEventListener('mousedown', buttonMouseDown);
+  mem_div.appendChild(mm_button);
+  
+  next_mem_div_id++;
+  memory_field.insertBefore(mem_div, memory_field.firstElementChild);
+
+  if(memory_field.childElementCount > 20)
+    memory_field.removeChild(memory_field.lastElementChild);
+  else if(memory_field.children[1].tagName === 'P')
+    memory_field.removeChild(memory_field.children[1]);
+
+  checkMemoryDisabled();
+  shouldDisplayDeleteButton();
+}
+
+
+/* when useless button is pressed */
+function wrapTopLeft() {
+  if(full_size)
+    return;
+  wrapper.style.top = '0';
+  wrapper.style.left = '0';
 }
 
 
@@ -233,11 +416,24 @@ function moveCalc(event) {
 }
 
 
+/* updating menu list and his/mem wrapper height */
+function updateWrappersHeight() {
+  menu_list.style.height = calculator.clientHeight - 70 + 'px';
+  main_buttons_wrapper.style.height = calculator.clientHeight - 200 + 'px';
+
+  if(enough_space_for_right)
+    his_and_mem_wrapper.style.height = calculator.clientHeight - 110 + 'px';
+  else
+    his_and_mem_wrapper.style.height = calculator.clientHeight - 240 + 'px';
+}
+
 /* resizing calculator */
 function resizeUpdate() {
   isTopOverflown();
-  scrollMenu();
   enoughSpaceForRight();
+  updateWrappersHeight();
+  if(showing_right_wrapper_when_small)
+    showHisMem(currently_showing);
 }
 
 function resizeMouseDown(event) {
@@ -290,7 +486,6 @@ function resizeMouseMove(event) {
   || currently_moving === 'bottomRight') 
   { calculator.style.width = `${init_width + offsetX}px`; }
 
-  main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
   full_size = false;
   top_full.innerHTML = '<span>□</span>';
   resizeUpdate();
@@ -309,7 +504,6 @@ function minSize() {
   calculator.style.height = '0';
   top_full.innerHTML = '<span>□</span>';
   full_size = false;
-  main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
   resizeUpdate();
 }
 
@@ -335,7 +529,6 @@ function fullSize() {
     top_full.innerHTML = '<span>□</span>';
     full_size = false;
   }
-  main_buttons_wrapper.style.height = `${parseInt(getComputedStyle(calculator).height) - 200}px`;
   resizeUpdate();
 }
 
@@ -348,27 +541,6 @@ function calcAddActive(event) {
 }
 function calcRemoveActive() {
   calculator.classList.remove('activeCalculator');
-}
-
-/* menu scrolling */
-function scrollMenu(event) {
-  if(typeof event !== 'undefined') {
-    if(event.deltaY > 0)
-      menu_scroll_position -= menu_scroll_amount;
-    else
-      menu_scroll_position += menu_scroll_amount;
-  }
-
-  menu_scroll_pos_max = -932 + calculator.clientHeight;
-
-  if(menu_scroll_position > 0)
-    menu_scroll_position = 0;
-  else if(menu_scroll_position < menu_scroll_pos_max)
-    menu_scroll_position = menu_scroll_pos_max;
-
-  menu_scrollbar.style.top = menu_scroll_position * (803 / menu_scroll_pos_max) + 'px';
-  menu_wrapper.style.top = menu_scroll_position + 'px';
-  calcAddActive();
 }
 
 
@@ -725,11 +897,33 @@ function keyLogic(element, clickInput) {
     case 'menu': menu_wrapper.style.display = 'block'; break;
     case 'menuClose': menu_wrapper.style.display = 'none'; break;
 
-    case 'deleteHisMem': hisMemClear();
+    case 'deleteHisMem': hisMemClear(); break;
+
+    case 'hisButton': historyChoose(); break;
+    case 'memButton': memoryChoose(); break;
+
+    case 'mStore': memoryStore(field_bottom.innerHTML); break;
+    case 'mAdd': memoryAddOrSubstract(0, 'add'); break;
+    case 'mSubstract': memoryAddOrSubstract(0, 'substract'); break;
+    case 'mClear': memoryClear(); break;
+    case 'mRead': memoryRead('read latest'); break;
+    case 'mShow': showHisMem('memory'); break;
+
+    case 'showHistoryButton': showHisMem('history'); break;
+
+    case 'embedButton': wrapTopLeft(); break;
   }
   
-  if(element.id.indexOf('his') !== -1)
+  if(element.id.indexOf('historyElement') !== -1)
     historyRead(element);
+  else if(element.id.indexOf('mpButton') !== -1)
+    memoryAddOrSubstract(element, 'add');
+  else if(element.id.indexOf('mmButton') !== -1)
+    memoryAddOrSubstract(element, 'substract');
+  else if(element.id.indexOf('mcButton') !== -1)
+    memoryRemoveElement(element);
+  else if(element.id.indexOf('memoryElement') !== -1)
+    memoryRead(element);
 }
 
 function keyboardPress(event) {
@@ -857,4 +1051,6 @@ function mouseUpButton() {
 - szybkie przesunięcie przy pomniejszaniu przesuwa kalkulator
 - dodać wykrywanie okresu i usuwanie cyfr na końcu które nie są z nim zgodne
 - po specialCalc nie ma korekcji rezultatów, można ją dodać
+- przy obliczeniach można przekroczyć max safe int,
+przez co dalsze wyniki są niepoprawne
 */

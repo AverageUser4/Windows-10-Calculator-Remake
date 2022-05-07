@@ -42,16 +42,20 @@
       <div id="calculatorLeftAndRightWrapper">
 
         <div id="calculatorLeftWrapper">
+
           <div id="underHeader">
-            <div>
+            <div id="underHeaderContentWrapper">
               <button id="menu">☰</button>
               <h2>Standardowy</h2>
               <button id="embedButton">⇱</button>
             </div>
             <button id="showHistoryButton">⟲</button>
+
             <div id="menuWrapper">
-              <button id="menuClose">☰</button>
-              <ul>
+              <div id="menuCloseWrapper">
+                <button id="menuClose">☰</button>
+              </div>
+              <ul id="menuList">
                 <li class="liHead">Kalkulator</li>
                 <li>Standardowy</li>
                 <li>Naukowy</li>
@@ -75,7 +79,6 @@
                 <li class="liHead"></li>
                 <li>Informacje</li>
               </ul>
-              <div id="menuScrollbar"></div>
             </div>
           </div>
     
@@ -86,13 +89,13 @@
             <div id="calculationFieldBottom">0</div>
           </div>
     
-          <div id="memoryButtonsWrapper">
-            <button id="mClear">MC</button>
-            <button id="mRead">MR</button>
+          <div id="memoryButtonsWrapper" class="disableSomeButtons">
+            <button id="mClear" class="disabled">MC</button>
+            <button id="mRead" class="disabled">MR</button>
             <button id="mAdd">M+</button>
             <button id="mSubstract">M-</button>
             <button id="mStore">MS</button>
-            <button id="mShow">M⏷</button>
+            <button id="mShow" class="disabled">M⏷</button>
           </div>
     
           <div id="mainButtonsWrapper">
@@ -121,38 +124,48 @@
             <button class="black" id="comma">,</button>
             <button class="black" id="equals">=</button>
           </div>
+
+          <div id="calcLeftOpacityWrapper"></div>
         </div>
   
         <div id="calculatorRightWrapper">
   
-          <button class="crwChooseButton chosen">Historia</button>
-          <button class="crwChooseButton">Pamięć</button>
+          <div id="calcRightTop">
+            <button id="hisButton" class="calcRightChooseButton chosen">Historia</button>
+            <button id="memButton" class="calcRightChooseButton">Pamięć</button>
+          </div>
+          
+          <div id="hisAndMemWrapper">
+            <div id="historyFieldWrapper">
 
-          <div id="historyFieldWrapper">
-            <div id="historyField">
-              <p>Nie ma jeszcze historii</p>
+              <div id="historyField">
+                <p>Nie ma jeszcze historii</p>
+                <!--
+                <div><p>150 * 5 =</p><h4>750</h4></div>
+                <div><p>150 * 5 =</p><h4>750</h4></div>
+                <div><p>150 * 5 =</p><h4>750</h4></div>
+                <div><p>150 * 5 =</p><h4>750</h4></div>
+                <div><p>150 * 5 =</p><h4>750</h4></div>
+                -->
+              </div>
+  
+            </div>
+  
+            <div id="memoryField">
+  
+              <p>Brak elementów zapisanych w pamięci</p>
+
               <!--
-              <div><p>150 * 5 =</p><h4>750</h4></div>
-              <div><p>150 * 5 =</p><h4>750</h4></div>
-              <div><p>150 * 5 =</p><h4>750</h4></div>
-              <div><p>150 * 5 =</p><h4>750</h4></div>
-              <div><p>150 * 5 =</p><h4>750</h4></div>
+                <div class="memoryElement">
+                  <h4>8</h4>
+                  <button>MC</button>
+                  <button>M+</button>
+                  <button>M-</button>
+                </div>
               -->
             </div>
-            <div id="historyScrollbar"></div>
           </div>
-
-          <div id="memoryField">
-
-            <div class="memoryElement">
-              <h4>8</h4>
-              <button>MC</button>
-              <button>M+</button>
-              <button>M-</button>
-            </div>
-
-          </div>
-
+          
         </div>
 
         <div id="deleteWrapper">

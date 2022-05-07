@@ -36,7 +36,16 @@ button {
   background-color: #4C4A48;
 }
 
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #222; }
+::-webkit-scrollbar-thumb { background: #787878; }
+::-webkit-scrollbar-thumb:hover { background: #a5a5a5; }
+
+
 #close.active { background-color: #f1707a !important; }
+
+#historyField > div > .active,
+#memoryField > div > .active { background-color: #5b5b5b !important; }
 
 #minimize.active,
 #full.active,
@@ -111,7 +120,7 @@ $resize-width: 15px;
   background-color: #1F1F1F;
   color: white;
   outline: 1px solid #333;
-  overflow: hidden;
+  //overflow: hidden;
 }
 
 .activeCalculator {
@@ -168,13 +177,12 @@ $resize-width: 15px;
 
 /* menu, current mode, leave on top and history */
 #underHeader {
-  padding: 1px 1px 0 0;
   height: 40px;
   display: flex;
   justify-content: space-between;
   position: relative;
   box-sizing: border-box;
-  div { display: flex; }
+  #underHeaderContentWrapper { display: flex; height: 40px; }
   h2 {
     font-size: 1.2rem;
     font-weight: 500;
@@ -183,36 +191,40 @@ $resize-width: 15px;
   button {
     font-size: 1.3rem;
     width: 40px;
-    &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
+    height: 40px;
+    box-sizing: border-box;
+    &:hover { background-color: #4A4A4A; border: 1px solid #666; }
   }
   #showHistoryButton { display: none; }
-  #menuWrapper {
-    display: none;
-    padding-bottom: 50px;
-    z-index: 4;
-    background-color: #222;
-    width: 250px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: 0.15s;
-    button { height: 40px; }
-    ul { list-style-type: none; font-size: 0.9rem; }
-    li { padding: 10px 0 10px 15px; &:hover { background-color: #4a4a4a; } }
-    .liHead { padding-left: 10px; font-size: 1rem; font-weight: bold; &:hover { background-color: transparent; } }
-    #menuScrollbar {
-      display: block;
-      position: absolute;
-      top: 0;
-      right: 2px;
-      width: 2px;
-      height: 100px;
-      background-color: #787878;
-      transition: 0.15s;
-    }
-  }
-  #menu:hover, #menuClose:hover { background-color: #333; outline: none; }
 }
+
+#menuWrapper {
+  display: none;
+  background-color: #222;
+  width: 250px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  #menuList { 
+    overflow: auto; 
+    height: 430px;
+    list-style-type: none;
+    font-size: 0.9rem;
+    li { padding: 10px 0 10px 15px; &:hover { background-color: #4a4a4a; } }
+    .liHead { 
+      padding-left: 10px;
+      font-size: 1rem;
+      font-weight: bold; 
+      &:hover { background-color: transparent; }
+    }
+  }  
+}
+#menu:hover, #menuClose:hover { 
+   background-color: #333 !important;
+   border: none !important;
+}
+
 
 /* field for current calculations */
 #calculationWrapper {
@@ -271,6 +283,21 @@ $resize-width: 15px;
   #mShow { display: none; }
 }
 
+#memoryButtonsWrapper.disableSomeButtons {
+  button {
+    &:nth-child(1), &:nth-child(2) {
+      color: #4c4c4c;
+      background-color: transparent;
+      outline: none;
+    }
+  }
+  button.active {
+    &:nth-child(1), &:nth-child(2) { 
+      background-color: transparent !important;
+    }
+  }
+}
+
 /* main buttons */
 #mainButtonsWrapper {
   padding: 0 5px 5px;
@@ -292,6 +319,7 @@ $resize-width: 15px;
 /* main calculator on left, memory and history on right */
 #calculatorLeftAndRightWrapper {
   display: flex;
+  position: relative;
 }
 
 #calculatorLeftWrapper {
@@ -301,11 +329,31 @@ $resize-width: 15px;
   position: relative;
 }
 
+#calcLeftOpacityWrapper {
+  display: none;
+  width: 100%;
+  height: 300px;
+  position: absolute;
+  top: -30px;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
 #calculatorRightWrapper {
+  flex-basis: 100%;
+  left: 0;
+  z-index: 4;
+
   min-width: 240px;
   max-width: 320px;
-  flex-basis: 100%;
-  .crwChooseButton {
+  // width: 100%;
+  // position: absolute;
+  background-color: #1f1f1f;
+}
+
+#calcRightTop {
+  height: 40px;
+  .calcRightChooseButton {
     font-size: 1rem;
     height: 40px;
     font-weight: 500;
@@ -316,6 +364,11 @@ $resize-width: 15px;
     text-decoration: underline #4C4A48 3px;
     text-underline-offset: 7px;
   }
+}
+
+#hisAndMemWrapper {
+  height: 390px;
+  overflow: auto;
 }
 
 #historyFieldWrapper, #memoryFieldWrapper {
@@ -332,32 +385,30 @@ $resize-width: 15px;
   text-align: right;
   padding: 8px 15px;
   margin-bottom: 15px;
-  &:hover { background-color: #353535; }
+  word-break: break-all;
+  &:hover { 
+    background-color: #353535;
+    & button { visibility: visible; }
+  }
   p { color: #939393; }
   h4 { font-weight: 500; font-size: 1.4rem; }
   button {
+    visibility: hidden;
     background-color: black;
     padding: 5px 0;
     width: 35px;
     font-weight: 500;
+    box-sizing: border-box;
     &:hover { 
       background-color: #4B4947;
       outline: 1px solid #777;
       color: black;
     }
+    &:not(&:last-of-type) { margin-right: 3px; }
   }
 }
 
-#historyScrollbar {
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 2px;
-  width: 2px;
-  height: 100px;
-  background-color: #787878;
-  transition: 0.15s;
-}
+
 
 ///////////////
 ///////////////
@@ -382,15 +433,18 @@ $resize-width: 15px;
   right: 0;
   bottom: 0;
   width: 100%;
-  height: 42px;
+  height: 40px;
+  z-index: 4;
 }
 
 #deleteHisMem {
+  display: none;
   width: 40px;
   height: 40px;
   font-size: 1.3rem;
   position: absolute;
-  bottom: 1px;
-  right: 1px;
-  &:hover { background-color: #4A4A4A; outline: 1px solid #666; }
+  bottom: 0px;
+  right: 0px;
+  box-sizing: border-box;
+  &:hover { background-color: #4A4A4A; border: 1px solid #666; }
 }
